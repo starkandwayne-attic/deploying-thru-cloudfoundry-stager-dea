@@ -29,7 +29,7 @@ $ foreman start
 09:26:02 dea.1           |  INFO -- File service started on port: 
 09:26:02 dea.1           | DEBUG -- Took 0.000506 to snapshot application state.
 ```
-
+z
 We can deploy the Sintra app at `apps/sinatra-app.zip` by running a script that combines the staging step and DEA deployment step together:
 
 ```
