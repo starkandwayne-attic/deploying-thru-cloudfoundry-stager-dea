@@ -1,0 +1,9 @@
+[submodule "stager"]
+	path = stager
+	url = git://github.com/cloudfoundry/stager.git
+[submodule "nats"]
+	path = nats
+	url = git://github.com/derekcollison/nats.git
+[submodule "dea"]
+	path = dea
+	url = git://github.com/cloudfoundry/dea.git
