@@ -3,6 +3,7 @@
 To run the services for the demo:
 
 ```
+$ git submodule update --init
 $ rake bundle_install
 $ foreman start
 09:25:58 nats.1          | started with pid 50933
@@ -33,15 +34,18 @@ We can deploy the Sintra app at `apps/sinatra-app.zip` by running a script that 
 
 ```
 $ ./bin/deploy_app
-[2012-11-14 10:14:24] Setting up temporary directories
-[2012-11-14 10:14:24] Downloading application
-[2012-11-14 10:14:24] Unpacking application
-[2012-11-14 10:14:24] Staging application
-[2012-11-14 10:14:26] # Logfile created on 2012-11-14 10:14:26 -0800 by logger.rb/31641
-[2012-11-14 10:14:26] Auto-reconfiguration disabled because app does not use Bundler.
-[2012-11-14 10:14:26] Please provide a Gemfile.lock to use auto-reconfiguration.
-[2012-11-14 10:14:26] Creating droplet
-[2012-11-14 10:14:27] Uploading droplet
-[2012-11-14 10:14:29] Done!
-New app registered at: http://192.168.1.70:57421
+Requesting stager to fetch app, stage it and upload back to fake server
+[2012-11-14 12:55:03] Setting up temporary directories
+[2012-11-14 12:55:03] Downloading application
+[2012-11-14 12:55:03] Unpacking application
+[2012-11-14 12:55:03] Staging application
+[2012-11-14 12:55:05] # Logfile created on 2012-11-14 12:55:05 -0800 by logger.rb/31641
+[2012-11-14 12:55:05] Auto-reconfiguration disabled because app does not use Bundler.
+[2012-11-14 12:55:05] Please provide a Gemfile.lock to use auto-reconfiguration.
+[2012-11-14 12:55:05] Creating droplet
+[2012-11-14 12:55:05] Uploading droplet
+[2012-11-14 12:55:07] Done!
+Now finding a DEA to deploy to
+Asking DEA f595bf2042b1bc60a10ee9edbfdac29d to deploy droplet
+New app registered at: http://172.20.10.2:57939
 ```
