@@ -28,3 +28,20 @@ $ foreman start
 09:26:02 dea.1           |  INFO -- File service started on port: 
 09:26:02 dea.1           | DEBUG -- Took 0.000506 to snapshot application state.
 ```
+
+We can deploy the Sintra app at `apps/sinatra-app.zip` by running a script that combines the staging step and DEA deployment step together:
+
+```
+$ ./bin/deploy_app
+[2012-11-14 10:14:24] Setting up temporary directories
+[2012-11-14 10:14:24] Downloading application
+[2012-11-14 10:14:24] Unpacking application
+[2012-11-14 10:14:24] Staging application
+[2012-11-14 10:14:26] # Logfile created on 2012-11-14 10:14:26 -0800 by logger.rb/31641
+[2012-11-14 10:14:26] Auto-reconfiguration disabled because app does not use Bundler.
+[2012-11-14 10:14:26] Please provide a Gemfile.lock to use auto-reconfiguration.
+[2012-11-14 10:14:26] Creating droplet
+[2012-11-14 10:14:27] Uploading droplet
+[2012-11-14 10:14:29] Done!
+New app registered at: http://192.168.1.70:57421
+```

@@ -1,0 +1,121 @@
+#!/usr/bin/env ruby
+
+# Requests the stager package an application into a "droplet", 
+# then requests the DEA deploy the droplet.
+
+STDOUT.sync = true
+
+require "nats/client"
+require "json"
+require "yaml"
+require "fileutils"
+
+QUEUE = 'staging' # as agreed in config/stager.yml
+
+app_id = app_name = "my-sinatra-app"
+stager_client = "http://localhost:9292" # set in Procfile
+upload_id = "upload_id"
+
+NATS.start do
+  # NATS.subscribe('>') { |msg, reply, sub| puts "Msg received on [#{sub}] : '#{msg}'" }
+
+  # 1. queue request to stage an application
+  # 2. find a DEA and tell it where to download droplet
+  
+  staging_request = {
+    app_id: app_id,
+    download_uri: "#{stager_client}/download_unstaged_app/#{app_id}",
+    upload_uri: "#{stager_client}/upload_droplet/#{app_id}/#{upload_id}",
+
+    # properties == 'environment' from config/stage-sinatra.yml
+    properties: { 
+      services: [],
+      framework_info: {
+        name: "sinatra",
+        runtimes: [
+          { ruby18: { default: true} },
+          { ruby19: { default: false} }
+        ],
+        detection: [
+          "*.rb" => "\\s*require[\\s\\(]*['\"]sinatra(/base)?['\"]", # .rb files in the root dir containing a require?
+          "config/environment.rb" => false                           # and config/environment.rb must not exist}
+        ]
+      },
+      runtime_info: {
+        name: 'ruby19',
+        executable: 'ruby',
+        version: '1.9.3'
+      },
+      resources: {
+        memory: 256,
+        disk: 256,
+        fds: 1024
+      }
+    }
+  }
+  
+  NATS.request(QUEUE, staging_request.to_json) do |result|
+    output = JSON.parse(result)
+    puts output["task_log"]
+    
+    # fake stager client now has the droplet at /staged_droplets/#{app_id}/SHA1
+
+    dea_discover = {
+      'runtime_info' => {
+        'name' => 'ruby19',
+        'executable' => 'ruby',
+        'version_output' => 'ruby 1.9.3p286'
+      },
+      'limits' => {
+        'mem' => 256
+      },
+      'droplet' => 'DROPLET_ID_1234'
+    }
+    NATS.request('dea.discover', dea_discover.to_json) do |response|
+      dea = JSON.parse(response)
+      dea_uuid = dea['id']
+
+      sha1 = "SHA1" # FIXME should be the SHA of the droplet
+
+      dea_app_start = {
+        droplet: app_name,
+        index: 0, # first and only running copy
+        services: [],
+        version: '1-1',
+        sha1: sha1,
+        executableUri: "#{stager_client}/staged_droplets/#{app_id}/#{sha1}",
+        executableFile: "ignore-unless-shared-filesystem",
+        name: app_name,
+        uris: ["#{app_name}.vcap.me"],
+        env: [],
+        users: ['drnicwilliams@gmail.com'],
+        runtime_info: {
+          name: 'ruby19',
+          executable: 'ruby',
+          version_output: 'ruby 1.9.3p286'
+        },
+        framework: 'sinatra',
+        running: 'ruby19',
+        limits: { mem: 256 },
+        cc_partition: 'default',
+        debug: true
+        # console: ???,
+        # flapping: ???
+      }
+
+      NATS.subscribe("router.register") do |msg|
+        # {"dea":"b062bfb498b9a8a8d7a7b015e54148b0","app":"sinatra",
+        # "host":"192.168.1.70","port":51690,"uris":["sinatra.vcap.me"],
+        # "tags":{"framework":"sinatra","runtime":"ruby19"},
+        # "private_instance_id":"04bed915cfa65f986a946853a0aeccd652fd7ae8cf4dbfede9c1ac76145099f6"}
+        new_app = JSON.parse(msg)
+        host, port = new_app["host"], new_app["port"]
+        puts "New app registered at: http://#{host}:#{port}"
+        NATS.stop
+      end
+
+      NATS.publish("dea.#{dea_uuid}.start", dea_app_start.to_json)
+    end
+  end
+
+end

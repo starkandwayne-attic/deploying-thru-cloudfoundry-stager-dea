@@ -1,6 +1,8 @@
 require 'sinatra'
 require 'fileutils'
 
+STDOUT.sync = true
+
 droplet_dir = "/tmp/deploying-thru-cloudfoundry-stager-dea/droplets"
 FileUtils.mkdir_p(droplet_dir)
 
@@ -13,7 +15,6 @@ end
 post '/upload_droplet/:id/:upload_id' do
   p params
   src_path = params[:upload][:droplet][:tempfile]
-  puts "stager uploaded staged droplet #{src_path}"
   stored_droplet = File.join(droplet_dir, params[:id])
   File.open(stored_droplet, "w") do |file|
     file << params[:upload][:droplet][:tempfile].read
