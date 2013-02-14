@@ -4,10 +4,10 @@ root = File.expand_path("..", __FILE__)
 
 desc "install all gem dependencies"
 task :bundle_install do
-  bundle_cmd = "bundle install --without development production"
+  bundle_cmd = "bundle install"
 
-  %w(. nats dea stager).each do |component|
-    sh "cd #{component} && #{bundle_cmd}"
+  %w(nats dea stager .).each do |component|
+    sh "cd #{component} && rm -rf .bundle && #{bundle_cmd}"
   end
 end
 
